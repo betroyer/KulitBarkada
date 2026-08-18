@@ -1,11 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 import '../../data/models.dart';
 import '../../data/repositories.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/formatters.dart';
+import '../../widgets/roulette_wheel.dart';
 import '../../widgets/widgets.dart';
 
 enum CatalogType { food, place, activity }
@@ -173,25 +172,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
       showSnack(context, 'Add at least one option first.', error: true);
       return;
     }
-    final pick = _items[Random().nextInt(_items.length)];
-    await showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('🎲 ${cfg.randomTitle}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(cfg.emoji, style: const TextStyle(fontSize: 42)),
-            const SizedBox(height: 8),
-            Text(pick.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-            if (pick.secondary.isNotEmpty)
-              Text(pick.secondary, style: const TextStyle(color: AppColors.muted)),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
-        ],
-      ),
+    await showRouletteDialog(
+      context,
+      title: cfg.randomTitle,
+      emoji: cfg.emoji,
+      options: _items.map((e) => e.name).toList(),
     );
   }
 
@@ -202,7 +187,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         title: Text('${cfg.emoji} ${cfg.title}'),
         actions: [
           IconButton(
-            tooltip: 'Random pick',
+            tooltip: 'Spin roulette',
             onPressed: _random,
             icon: const Icon(Icons.casino_outlined),
           ),

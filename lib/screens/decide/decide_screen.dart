@@ -1,11 +1,9 @@
-import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 import '../../data/models.dart';
 import '../../data/repositories.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/roulette_wheel.dart';
 import '../../widgets/widgets.dart';
 import '../plan/plan_screen.dart';
 
@@ -26,22 +24,15 @@ class _DecideScreenState extends State<DecideScreen> {
   bool _pickFood = true;
   bool _pickPlace = true;
   bool _pickActivity = true;
-  bool _rolling = false;
+  bool _busy = false;
   String? _food;
   String? _place;
   String? _activity;
-  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _load();
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
   }
 
   Future<void> _load() async {
@@ -80,35 +71,53 @@ class _DecideScreenState extends State<DecideScreen> {
       return;
     }
 
-    setState(() => _rolling = true);
-    final random = Random();
-    var ticks = 0;
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(milliseconds: 90), (timer) {
-      ticks++;
-      setState(() {
-        if (_pickFood) _food = _foods[random.nextInt(_foods.length)].name;
-        if (_pickPlace) _place = _places[random.nextInt(_places.length)].name;
-        if (_pickActivity) _activity = _activities[random.nextInt(_activities.length)].name;
-      });
-      if (ticks >= 14) {
-        timer.cancel();
-        final food = _pickFood ? _foods[random.nextInt(_foods.length)].name : _food;
-        final place = _pickPlace ? _places[random.nextInt(_places.length)].name : _place;
-        final activity = _pickActivity ? _activities[random.nextInt(_activities.length)].name : _activity;
-        GroupRepository().saveDecisions(
-          widget.groupId,
-          food: _pickFood ? food : null,
-          place: _pickPlace ? place : null,
-          activity: _pickActivity ? activity : null,
-        );
-        setState(() {
-          _food = food;
-          _place = place;
-          _activity = activity;
-          _rolling = false;
-        });
-      }
+    final rounds = <RouletteCategory>[
+      if (_pickFood)
+        RouletteCategory(
+          id: 'food',
+          title: 'Food',
+          emoji: '🍔',
+          options: _foods.map((e) => e.name).toList(),
+          color: AppColors.food,
+        ),
+      if (_pickPlace)
+        RouletteCategory(
+          id: 'place',
+          title: 'Place',
+          emoji: '📍',
+          options: _places.map((e) => e.name).toList(),
+          color: AppColors.places,
+        ),
+      if (_pickActivity)
+        RouletteCategory(
+          id: 'activity',
+          title: 'Activity',
+          emoji: '🎯',
+          options: _activities.map((e) => e.name).toList(),
+          color: AppColors.activities,
+        ),
+    ];
+
+    setState(() => _busy = true);
+    final results = await showPlanRoulette(context, categories: rounds);
+    if (!mounted) return;
+    setState(() => _busy = false);
+    if (results == null || results.isEmpty) return;
+
+    final food = results['food'] ?? _food;
+    final place = results['place'] ?? _place;
+    final activity = results['activity'] ?? _activity;
+
+    await GroupRepository().saveDecisions(
+      widget.groupId,
+      food: results.containsKey('food') ? food : null,
+      place: results.containsKey('place') ? place : null,
+      activity: results.containsKey('activity') ? activity : null,
+    );
+    setState(() {
+      _food = food;
+      _place = place;
+      _activity = activity;
     });
   }
 
@@ -142,8 +151,13 @@ class _DecideScreenState extends State<DecideScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text('What should we decide?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const Text('What should the roulette decide?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
+          const Text(
+            'Spin a wheel for food, place, and activity. The pointer at the top is the group plan.',
+            style: TextStyle(color: AppColors.muted, height: 1.4),
+          ),
+          const SizedBox(height: 12),
           CheckboxListTile(
             value: _pickFood,
             onChanged: (v) => setState(() => _pickFood = v ?? true),
@@ -169,14 +183,14 @@ class _DecideScreenState extends State<DecideScreen> {
           ),
           const SizedBox(height: 20),
           FilledButton(
-            onPressed: _rolling ? null : _decide,
-            child: Text(_rolling ? 'Deciding...' : '🎲 DECIDE FOR US'),
+            onPressed: _busy ? null : _decide,
+            child: Text(_busy ? 'Opening roulette...' : '🎡 SPIN THE ROULETTE'),
           ),
           const SizedBox(height: 24),
           SectionCard(
             child: Column(
               children: [
-                const Text('🎉 GROUP DECISION', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                const Text('🎉 GROUP PLAN', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 16),
                 _result('🍔 Food', _food),
                 _result('📍 Place', _place),
@@ -203,12 +217,12 @@ class _DecideScreenState extends State<DecideScreen> {
         children: [
           Text(label, style: const TextStyle(color: AppColors.muted, fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 120),
-            child: Text(
-              value == null || value.isEmpty ? '—' : value,
-              key: ValueKey('$label-$value'),
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+          Text(
+            value == null || value.isEmpty ? 'Spin the roulette' : value,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: value == null || value.isEmpty ? AppColors.muted : AppColors.ink,
             ),
           ),
         ],
