@@ -7,6 +7,7 @@ import '../../state/auth_state.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/formatters.dart';
 import '../../widgets/widgets.dart';
+import '../../widgets/wireframe_ui.dart';
 import '../auth/profile_screen.dart';
 import 'group_dashboard_screen.dart';
 import 'group_form_screen.dart';
@@ -21,12 +22,30 @@ class GroupsScreen extends StatefulWidget {
 class _GroupsScreenState extends State<GroupsScreen> {
   final _groups = GroupRepository();
   List<OutingGroup> _items = [];
+  List<OutingGroup> _filtered = [];
   bool _loading = true;
+  final _search = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _search.addListener(_applyFilter);
     _reload();
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  void _applyFilter() {
+    final q = _search.text.trim().toLowerCase();
+    setState(() {
+      _filtered = q.isEmpty
+          ? _items
+          : _items.where((g) => g.name.toLowerCase().contains(q)).toList();
+    });
   }
 
   Future<void> _reload() async {
@@ -38,6 +57,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
       _items = items;
       _loading = false;
     });
+    _applyFilter();
   }
 
   Future<void> _create() async {
@@ -45,94 +65,82 @@ class _GroupsScreenState extends State<GroupsScreen> {
     if (created == true) _reload();
   }
 
+  Future<void> _openSearch() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('SEARCH', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.8)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _search,
+              autofocus: true,
+              decoration: const InputDecoration(hintText: 'Find a barkada...'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AuthState>().user;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Groups'),
-        actions: [
-          IconButton(
-            tooltip: 'Account',
-            onPressed: () => pushPage(context, const ProfileScreen()),
-            icon: const Icon(Icons.account_circle_outlined),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _create,
-        icon: const Icon(Icons.add),
-        label: const Text('Create group'),
-      ),
+      backgroundColor: AppColors.background,
+      appBar: KulitAppHeader(onProfileTap: () => pushPage(context, const ProfileScreen())),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: WireframeCreateFab(onPressed: _create),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _reload,
-              child: _items.isEmpty
-                  ? ListView(
-                      children: [
-                        const SizedBox(height: 80),
-                        EmptyState(
-                          emoji: '👥',
-                          title: 'No groups yet',
-                          subtitle: 'Create an outing with your barkada. Everything stays on this phone.',
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                children: [
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'MY BARKADA',
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 0.6),
                         ),
-                        if (user != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: Center(
-                              child: Text('Hi, ${user.fullName.split(' ').first}',
-                                  style: const TextStyle(color: AppColors.muted)),
-                            ),
-                          ),
-                      ],
+                      ),
+                      WireframePill(label: 'SEARCH', icon: Icons.search, onTap: _openSearch),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  if (_filtered.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 48),
+                      child: EmptyState(
+                        emoji: '👥',
+                        title: 'No barkada yet',
+                        subtitle: 'Tap + CREATE to start a group outing.',
+                      ),
                     )
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-                      itemCount: _items.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final group = _items[index];
-                        return InkWell(
-                          borderRadius: BorderRadius.circular(20),
+                  else
+                    ..._filtered.map((group) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: WireframeGroupCard(
+                          name: group.name,
+                          date: formatShortDate(parseIsoDate(group.date)),
+                          memberCount: group.memberCount,
                           onTap: () async {
                             await pushPage(context, GroupDashboardScreen(groupId: group.id!));
                             _reload();
                           },
-                          child: SectionCard(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(group.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                                const SizedBox(height: 4),
-                                Text(formatLongDate(parseIsoDate(group.date)),
-                                    style: const TextStyle(color: AppColors.muted)),
-                                const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    _chip('${group.memberCount} Members'),
-                                    const SizedBox(width: 8),
-                                    _chip('${formatPeso(group.budget)} Budget'),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    }),
+                ],
+              ),
             ),
-    );
-  }
-
-  Widget _chip(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
     );
   }
 }

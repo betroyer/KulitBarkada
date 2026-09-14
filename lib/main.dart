@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'data/repositories.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/groups/groups_screen.dart';
+import 'screens/splash/splash_screen.dart';
 import 'state/auth_state.dart';
 import 'theme/app_theme.dart';
 
@@ -20,10 +21,10 @@ class BarkadaPlanApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => AuthState(AuthRepository())..restore(),
       child: MaterialApp(
-        title: 'Barkada Plan',
+        title: 'Kulit Barkada',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
-        home: const _AuthGate(),
+        home: const SplashScreen(child: _AuthGate()),
       ),
     );
   }
@@ -35,11 +36,6 @@ class _AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthState>();
-    if (!auth.ready) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
     if (auth.isLoggedIn) return const GroupsScreen();
     return const LoginScreen();
   }

@@ -4,9 +4,12 @@ import '../../data/models.dart';
 import '../../data/repositories.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/formatters.dart';
+import '../../utils/plan_costs.dart';
 import '../../widgets/widgets.dart';
+import '../../widgets/wireframe_ui.dart';
+import 'custom_split_screen.dart';
+import 'equal_split_screen.dart';
 import 'expense_form_screen.dart';
-import 'split_screen.dart';
 
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key, required this.groupId});
@@ -19,8 +22,10 @@ class ExpensesScreen extends StatefulWidget {
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
   final _repo = ExpenseRepository();
+  PlanCostBreakdown? _planCosts;
   List<ExpenseItem> _items = [];
-  double _total = 0;
+  double _loggedTotal = 0;
+  bool _loading = true;
 
   @override
   void initState() {
@@ -29,13 +34,27 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   }
 
   Future<void> _reload() async {
+    final group = await GroupRepository().getById(widget.groupId);
+    final planCosts = await loadPlanCosts(widget.groupId, group);
     final items = await _repo.list(widget.groupId);
     final total = await _repo.totalForGroup(widget.groupId);
     if (!mounted) return;
     setState(() {
+      _planCosts = planCosts;
       _items = items;
-      _total = total;
+      _loggedTotal = total;
+      _loading = false;
     });
+  }
+
+  double get _splitTotal {
+    if (_loggedTotal > 0) return _loggedTotal;
+    return _planCosts?.total ?? 0;
+  }
+
+  String _amount(double value) {
+    if (value == value.roundToDouble()) return value.round().toString();
+    return value.toStringAsFixed(0);
   }
 
   Future<void> _openForm({ExpenseItem? expense}) async {
@@ -46,99 +65,89 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     if (saved == true) _reload();
   }
 
-  Future<void> _delete(ExpenseItem expense) async {
-    final ok = await confirmAction(
-      context,
-      title: 'Delete ${expense.name}?',
-      message: '${formatPeso(expense.amount)} will be removed from the group total.',
-    );
-    if (!ok) return;
-    await _repo.delete(expense.id!);
-    _reload();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final plan = _planCosts;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Expenses'),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              await pushPage(context, SplitScreen(groupId: widget.groupId, total: _total));
-              _reload();
-            },
-            child: const Text('Split'),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
+      appBar: const WireframeAppBar(title: 'Expenses'),
+      floatingActionButton: FloatingActionButton(
         onPressed: () => _openForm(),
-        icon: const Icon(Icons.add),
-        label: const Text('Add expense'),
+        child: const Icon(Icons.add),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-            child: SectionCard(
-              color: AppColors.primaryDark,
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text('Total Expenses', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+      body: _loading || plan == null
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+              children: [
+                Container(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  decoration: BoxDecoration(
+                    border: Border(left: BorderSide(color: AppColors.ink, width: 3)),
                   ),
-                  Text(formatPeso(_total),
-                      style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            child: _items.isEmpty
-                ? const EmptyState(
-                    emoji: '💸',
-                    title: 'No expenses yet',
-                    subtitle: 'Log food, transportation, and entrance fees as you go.',
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-                    itemCount: _items.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      final expense = _items[index];
-                      return SectionCard(
+                  child: Column(
+                    children: [
+                      WireframeLineItem(label: 'Food', amount: _amount(plan.food)),
+                      WireframeLineItem(label: 'Place', amount: _amount(plan.place)),
+                      WireframeLineItem(label: 'Activity', amount: _amount(plan.activity)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                WireframeTotalBox(total: _amount(_splitTotal)),
+                const WireframeSectionLabel(label: 'Expense Splitting'),
+                Row(
+                  children: [
+                    Expanded(
+                      child: WireframeOutlineButton(
+                        label: 'Equal',
+                        onPressed: _splitTotal <= 0
+                            ? null
+                            : () async {
+                                await pushPage(
+                                  context,
+                                  EqualSplitScreen(groupId: widget.groupId, total: _splitTotal),
+                                );
+                                _reload();
+                              },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: WireframeOutlineButton(
+                        label: 'Custom',
+                        onPressed: _splitTotal <= 0
+                            ? null
+                            : () async {
+                                await pushPage(
+                                  context,
+                                  CustomSplitScreen(groupId: widget.groupId, total: _splitTotal),
+                                );
+                                _reload();
+                              },
+                      ),
+                    ),
+                  ],
+                ),
+                if (_items.isNotEmpty) ...[
+                  const SizedBox(height: 28),
+                  const WireframeSectionLabel(label: 'Logged Expenses'),
+                  ..._items.map((expense) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: SectionCard(
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(expense.name, style: const TextStyle(fontWeight: FontWeight.w800)),
-                          subtitle: Text(
-                            'Paid by: ${expense.paidByName}\n${formatShortDate(parseIsoDate(expense.date))}'
-                            '${expense.participantNames.isEmpty ? '' : '\n${expense.participantNames.join(', ')}'}',
-                          ),
-                          isThreeLine: true,
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(formatPeso(expense.amount), style: const TextStyle(fontWeight: FontWeight.w800)),
-                              PopupMenuButton<String>(
-                                onSelected: (value) {
-                                  if (value == 'edit') _openForm(expense: expense);
-                                  if (value == 'delete') _delete(expense);
-                                },
-                                itemBuilder: (_) => const [
-                                  PopupMenuItem(value: 'edit', child: Text('Edit')),
-                                  PopupMenuItem(value: 'delete', child: Text('Delete')),
-                                ],
-                              ),
-                            ],
-                          ),
+                          subtitle: Text('Paid by ${expense.paidByName}'),
+                          trailing: Text(formatPeso(expense.amount), style: const TextStyle(fontWeight: FontWeight.w900)),
+                          onTap: () => _openForm(expense: expense),
                         ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
+                      ),
+                    );
+                  }),
+                ],
+              ],
+            ),
     );
   }
 }

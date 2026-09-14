@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../state/auth_state.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/brand_logo.dart';
 import '../../widgets/widgets.dart';
 import 'register_screen.dart';
 
@@ -59,10 +60,10 @@ class _LoginScreenState extends State<LoginScreen> {
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('🎉', style: TextStyle(fontSize: 36)),
-                  SizedBox(height: 12),
+                  KulitLogo(size: 72),
+                  SizedBox(height: 16),
                   Text(
-                    'Barkada Plan',
+                    'Kulit Barkada',
                     style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900),
                   ),
                   SizedBox(height: 8),
