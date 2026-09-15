@@ -6,13 +6,17 @@ import '../../theme/app_theme.dart';
 import '../../utils/formatters.dart';
 import '../../widgets/widgets.dart';
 import '../../widgets/wireframe_ui.dart';
+import '../members/members_screen.dart';
 import 'custom_spin_screen.dart';
 
+/// Wireframe Custom Split:
+/// AMOUNT + ADD → SPLIT list (edit/delete) → spin → member totals.
 class CustomSplitScreen extends StatefulWidget {
-  const CustomSplitScreen({super.key, required this.groupId, required this.total});
+  const CustomSplitScreen({super.key, required this.groupId, this.total});
 
   final int groupId;
-  final double total;
+  /// Unused for freeform flow; kept for older call sites.
+  final double? total;
 
   @override
   State<CustomSplitScreen> createState() => _CustomSplitScreenState();
@@ -24,6 +28,7 @@ class _CustomSplitScreenState extends State<CustomSplitScreen> {
   List<GroupMember> _members = [];
   Map<int, double> _assigned = {};
   bool _loading = true;
+  bool _showResult = false;
 
   @override
   void initState() {
@@ -45,7 +50,10 @@ class _CustomSplitScreenState extends State<CustomSplitScreen> {
       _members = members;
       if (saved.isNotEmpty && saved.first.splitType == 'custom') {
         _assigned = {for (final s in saved) s.memberId: s.amount};
-        _splits.addAll(saved.map((s) => s.amount));
+        if (_splits.isEmpty) {
+          _splits.addAll(saved.map((s) => s.amount));
+        }
+        _showResult = _assigned.isNotEmpty;
       }
       _loading = false;
     });
@@ -66,18 +74,21 @@ class _CustomSplitScreenState extends State<CustomSplitScreen> {
     }
     setState(() {
       _splits.add(amount);
+      _showResult = false;
+      _assigned = {};
       _amountCtrl.clear();
     });
   }
 
-  void _editSplit(int index) async {
-    final ctrl = TextEditingController(text: _splits[index].toStringAsFixed(0));
+  Future<void> _editSplit(int index) async {
+    final ctrl = TextEditingController(text: _display(_splits[index]));
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit split'),
         content: TextField(
           controller: ctrl,
+          autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: const InputDecoration(labelText: 'Amount', prefixText: '₱ '),
         ),
@@ -90,11 +101,19 @@ class _CustomSplitScreenState extends State<CustomSplitScreen> {
     if (ok != true) return;
     final amount = parseAmount(ctrl.text);
     if (amount <= 0) return;
-    setState(() => _splits[index] = amount);
+    setState(() {
+      _splits[index] = amount;
+      _showResult = false;
+      _assigned = {};
+    });
   }
 
   void _deleteSplit(int index) {
-    setState(() => _splits.removeAt(index));
+    setState(() {
+      _splits.removeAt(index);
+      _showResult = false;
+      _assigned = {};
+    });
   }
 
   Future<void> _spinAssign() async {
@@ -114,10 +133,6 @@ class _CustomSplitScreenState extends State<CustomSplitScreen> {
       );
       return;
     }
-    if ((_splitSum - widget.total).abs() > 0.05) {
-      showSnack(context, 'Split amounts must total ${formatPeso(widget.total)}.', error: true);
-      return;
-    }
 
     final result = await pushPage<Map<int, double>>(
       context,
@@ -127,15 +142,9 @@ class _CustomSplitScreenState extends State<CustomSplitScreen> {
         splitAmounts: List<double>.from(_splits),
       ),
     );
-    if (result != null) setState(() => _assigned = result);
-  }
+    if (result == null || !mounted) return;
 
-  Future<void> _saveManual() async {
-    if (_assigned.length != _members.length) {
-      showSnack(context, 'Spin the roulette to assign each member first.', error: true);
-      return;
-    }
-    final splits = _assigned.entries
+    final splits = result.entries
         .map((e) => ExpenseSplit(
               groupId: widget.groupId,
               memberId: e.key,
@@ -144,16 +153,89 @@ class _CustomSplitScreenState extends State<CustomSplitScreen> {
             ))
         .toList();
     await ExpenseRepository().saveSplits(widget.groupId, splits);
+
     if (!mounted) return;
-    showSnack(context, 'Custom split saved.');
-    Navigator.pop(context);
+    setState(() {
+      _assigned = result;
+      _showResult = true;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final assignedSum = _assigned.values.fold(0.0, (a, b) => a + b);
+
+    if (_showResult && _assigned.isNotEmpty) {
+      return Scaffold(
+        appBar: WireframeAppBar(
+          title: 'Custom Split',
+          actions: [
+            IconButton(
+              tooltip: 'Members',
+              onPressed: () async {
+                await pushPage(context, MembersScreen(groupId: widget.groupId));
+                _load();
+              },
+              icon: const Icon(Icons.groups_outlined),
+            ),
+          ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+          children: [
+            for (final member in _members)
+              if (member.id != null && _assigned.containsKey(member.id))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          member.name.toUpperCase(),
+                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                        ),
+                      ),
+                      Text(
+                        _display(_assigned[member.id!]!),
+                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+                      ),
+                    ],
+                  ),
+                ),
+            const Divider(height: 28),
+            WireframeTotalBox(total: _display(assignedSum)),
+            const SizedBox(height: 28),
+            WireframeOutlineButton(
+              label: 'Spin again',
+              onPressed: () => setState(() {
+                _showResult = false;
+                _assigned = {};
+              }),
+            ),
+            const SizedBox(height: 12),
+            WireframeOutlineButton(
+              label: 'Done',
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
-      appBar: const WireframeAppBar(title: 'Custom Split'),
+      appBar: WireframeAppBar(
+        title: 'Custom Split',
+        actions: [
+          IconButton(
+            tooltip: 'Members',
+            onPressed: () async {
+              await pushPage(context, MembersScreen(groupId: widget.groupId));
+              _load();
+            },
+            icon: const Icon(Icons.groups_outlined),
+          ),
+        ],
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -173,7 +255,7 @@ class _CustomSplitScreenState extends State<CustomSplitScreen> {
                       TextField(
                         controller: _amountCtrl,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(hintText: 'Enter amount', prefixText: '₱ '),
+                        decoration: const InputDecoration(hintText: '100', prefixText: '₱ '),
                         onSubmitted: (_) => _addAmount(),
                       ),
                       const SizedBox(height: 12),
@@ -184,7 +266,7 @@ class _CustomSplitScreenState extends State<CustomSplitScreen> {
                 const SizedBox(height: 20),
                 for (var i = 0; i < _splits.length; i++)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(bottom: 14),
                     child: Row(
                       children: [
                         Expanded(
@@ -194,7 +276,7 @@ class _CustomSplitScreenState extends State<CustomSplitScreen> {
                               const Text('SPLIT', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
                               Text(
                                 _display(_splits[i]),
-                                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22),
                               ),
                             ],
                           ),
@@ -207,36 +289,15 @@ class _CustomSplitScreenState extends State<CustomSplitScreen> {
                 if (_splits.isNotEmpty) ...[
                   const Divider(height: 24),
                   WireframeTotalBox(total: _display(_splitSum)),
-                ],
-                if (_assigned.isNotEmpty) ...[
-                  const SizedBox(height: 24),
-                  const WireframeSectionLabel(label: 'Assigned'),
-                  for (final member in _members)
-                    if (member.id != null && _assigned.containsKey(member.id))
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                member.name.toUpperCase(),
-                                style: const TextStyle(fontWeight: FontWeight.w800),
-                              ),
-                            ),
-                            Text(
-                              _display(_assigned[member.id!]!),
-                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-                            ),
-                          ],
-                        ),
-                      ),
-                  WireframeTotalBox(total: _display(assignedSum)),
-                ],
-                const SizedBox(height: 24),
-                WireframeOutlineButton(label: 'Custom Spin', onPressed: _spinAssign),
-                if (_assigned.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  WireframeOutlineButton(label: 'Save custom split', onPressed: _saveManual),
+                  const SizedBox(height: 8),
+                  Text(
+                    _members.isEmpty
+                        ? 'Add members before spinning.'
+                        : 'Need ${_members.length} split${_members.length == 1 ? '' : 's'} for ${_members.length} member${_members.length == 1 ? '' : 's'}.',
+                    style: const TextStyle(color: AppColors.muted, fontSize: 13),
+                  ),
+                  const SizedBox(height: 20),
+                  WireframeOutlineButton(label: 'Tap to spin', onPressed: _spinAssign),
                 ],
               ],
             ),

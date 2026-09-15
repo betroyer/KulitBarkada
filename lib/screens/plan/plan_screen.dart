@@ -87,7 +87,6 @@ class _PlanScreenState extends State<PlanScreen> {
                       _line('🍔 Food', plan.foodName.isEmpty ? 'TBD' : plan.foodName),
                       _line('🎯 Activity', plan.activityName.isEmpty ? 'TBD' : plan.activityName),
                       _line('👥 Members', '${plan.memberCount} Members'),
-                      _line('💰 Budget', formatPeso(plan.budget)),
                       _line('💸 Estimated Expenses', formatPeso(plan.estimatedExpenses)),
                       _line('💵 Estimated Per Person', formatPeso(plan.perPerson)),
                       if (plan.notes.isNotEmpty) _line('📝 Notes', plan.notes),

@@ -50,9 +50,10 @@ class KulitAppHeader extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class WireframeAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const WireframeAppBar({super.key, required this.title});
+  const WireframeAppBar({super.key, required this.title, this.actions});
 
   final String title;
+  final List<Widget>? actions;
 
   @override
   Size get preferredSize => const Size.fromHeight(56);
@@ -66,6 +67,7 @@ class WireframeAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       title: Text(title.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.8)),
       centerTitle: false,
+      actions: actions,
     );
   }
 }

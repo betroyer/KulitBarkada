@@ -19,7 +19,6 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _name;
   late final TextEditingController _description;
-  late final TextEditingController _budget;
   late DateTime _date;
   bool _busy = false;
 
@@ -31,9 +30,6 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
     final group = widget.group;
     _name = TextEditingController(text: group?.name ?? '');
     _description = TextEditingController(text: group?.description ?? '');
-    _budget = TextEditingController(
-      text: group == null || group.budget == 0 ? '' : group.budget.toStringAsFixed(0),
-    );
     _date = group == null ? DateTime.now() : parseIsoDate(group.date);
   }
 
@@ -41,7 +37,6 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
   void dispose() {
     _name.dispose();
     _description.dispose();
-    _budget.dispose();
     super.dispose();
   }
 
@@ -67,7 +62,7 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
       name: _name.text.trim(),
       date: toIsoDate(_date),
       description: _description.text.trim(),
-      budget: parseAmount(_budget.text),
+      budget: 0,
       decidedFood: widget.group?.decidedFood,
       decidedPlace: widget.group?.decidedPlace,
       decidedActivity: widget.group?.decidedActivity,
@@ -121,17 +116,6 @@ class _GroupFormScreenState extends State<GroupFormScreen> {
                   controller: _description,
                   maxLines: 3,
                   decoration: const InputDecoration(labelText: 'Description'),
-                ),
-                const SizedBox(height: 14),
-                TextFormField(
-                  controller: _budget,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Budget (₱)', prefixText: '₱ '),
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Budget is required';
-                    if (parseAmount(v) < 0) return 'Budget cannot be negative';
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 24),
                 FilledButton(

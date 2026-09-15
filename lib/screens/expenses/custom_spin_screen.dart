@@ -5,6 +5,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/roulette_wheel.dart';
 import '../../widgets/wireframe_ui.dart';
 
+/// Wireframe spin: member name on top, wheel with amounts, TAP to assign.
 class CustomSpinScreen extends StatefulWidget {
   const CustomSpinScreen({
     super.key,
@@ -84,7 +85,7 @@ class _CustomSpinScreenState extends State<CustomSpinScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const WireframeAppBar(title: 'Custom Spin'),
+      appBar: const WireframeAppBar(title: 'Custom Split'),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -93,7 +94,7 @@ class _CustomSpinScreenState extends State<CustomSpinScreen> {
               _member.name.toUpperCase(),
               style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, letterSpacing: 0.8),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               'Round ${_round + 1} of ${widget.members.length}',
               style: const TextStyle(color: AppColors.muted, fontWeight: FontWeight.w600),
