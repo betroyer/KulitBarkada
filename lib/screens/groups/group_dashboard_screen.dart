@@ -10,6 +10,7 @@ import '../catalog/catalog_screen.dart';
 import '../decide/decide_screen.dart';
 import '../expenses/custom_split_screen.dart';
 import '../expenses/equal_split_screen.dart';
+import '../games/games_hub_screen.dart';
 import '../members/members_screen.dart';
 import '../plan/plan_screen.dart';
 import 'group_form_screen.dart';
@@ -132,6 +133,17 @@ class _GroupDashboardScreenState extends State<GroupDashboardScreen> {
                   ],
                 ),
                 const SizedBox(height: 28),
+                const WireframeSectionLabel(label: 'Games'),
+                const Text(
+                  'Truth or Dare and Who is the Spy — pass the phone around.',
+                  style: TextStyle(color: AppColors.muted, height: 1.4),
+                ),
+                const SizedBox(height: 14),
+                WireframeOutlineButton(
+                  label: 'Open games',
+                  onPressed: () => _open(GamesHubScreen(groupId: widget.groupId)),
+                ),
+                const SizedBox(height: 28),
                 const WireframeSectionLabel(label: 'Plan the outing'),
                 GridView.count(
                   crossAxisCount: 2,
@@ -141,6 +153,12 @@ class _GroupDashboardScreenState extends State<GroupDashboardScreen> {
                   crossAxisSpacing: 12,
                   childAspectRatio: 1.2,
                   children: [
+                    FeatureTile(
+                      emoji: '🎮',
+                      label: 'Games',
+                      color: AppColors.games,
+                      onTap: () => _open(GamesHubScreen(groupId: widget.groupId)),
+                    ),
                     FeatureTile(
                       emoji: '👥',
                       label: 'Members',

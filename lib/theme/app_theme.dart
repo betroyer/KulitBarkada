@@ -20,6 +20,7 @@ class AppColors {
   static const expenses = Color(0xFF0F766E);
   static const plan = Color(0xFF1D4ED8);
   static const summary = Color(0xFFB45309);
+  static const games = Color(0xFFBE185D);
 }
 
 class AppTheme {
