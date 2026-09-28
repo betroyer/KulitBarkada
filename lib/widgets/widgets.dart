@@ -20,13 +20,17 @@ Future<bool> confirmAction(
   final result = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       title: Text(title),
       content: Text(message),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
         FilledButton(
           onPressed: () => Navigator.pop(context, true),
-          style: FilledButton.styleFrom(backgroundColor: AppColors.danger, minimumSize: const Size(88, 44)),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.danger,
+            minimumSize: const Size(88, 44),
+          ),
           child: Text(confirmLabel),
         ),
       ],
@@ -57,7 +61,7 @@ class EmptyState extends StatelessWidget {
           children: [
             Text(emoji, style: const TextStyle(fontSize: 48)),
             const SizedBox(height: 12),
-            Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+            Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.ink)),
             const SizedBox(height: 8),
             Text(
               subtitle,
@@ -82,18 +86,11 @@ class SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: padding ?? const EdgeInsets.all(16),
+      padding: padding ?? const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: color ?? AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: AppColors.softShadow,
       ),
       child: child,
     );
@@ -116,11 +113,11 @@ class StatPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: AppColors.softShadow,
         ),
         child: Column(
           children: [
@@ -131,7 +128,7 @@ class StatPill extends StatelessWidget {
             Text(
               value,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppColors.ink),
             ),
           ],
         ),
@@ -160,12 +157,12 @@ class FeatureTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         child: Ink(
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: AppColors.softShadow,
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -173,17 +170,31 @@ class FeatureTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 44,
+                  height: 44,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(14),
+                    color: color.withValues(alpha: 0.14),
+                    shape: BoxShape.circle,
                   ),
                   child: Text(emoji, style: const TextStyle(fontSize: 20)),
                 ),
                 const Spacer(),
-                Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppColors.ink)),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.ink.withValues(alpha: 0.08)),
+                    ),
+                    child: const Icon(Icons.arrow_outward, size: 14, color: AppColors.ink),
+                  ),
+                ),
               ],
             ),
           ),

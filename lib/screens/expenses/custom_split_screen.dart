@@ -244,13 +244,14 @@ class _CustomSplitScreenState extends State<CustomSplitScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.ink, width: 2),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: AppColors.softShadow,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text('AMOUNT', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.6)),
+                      const Text('Amount', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.ink)),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _amountCtrl,

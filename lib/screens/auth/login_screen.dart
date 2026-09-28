@@ -43,38 +43,38 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(24, 36, 24, 24),
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
           children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primaryDark, AppColors.primary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(28),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            SectionCard(
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
+              child: Column(
                 children: [
-                  KulitLogo(size: 72),
-                  SizedBox(height: 16),
-                  Text(
-                    'Kulit Barkada',
-                    style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900),
+                  const KulitLogo(size: 96),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Your smart gateway to\nbetter barkada plans!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                      height: 1.25,
+                      letterSpacing: -0.4,
+                    ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Plan the outing. Split the bill. Decide together — fully offline.',
-                    style: TextStyle(color: Colors.white70, height: 1.4),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Plan the outing, spin the roulette, split the bill — fully offline.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.muted, height: 1.4),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 24),
             Form(
               key: _formKey,
               child: Column(
@@ -106,7 +106,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 20),
                   FilledButton(
                     onPressed: _busy ? null : _submit,
-                    child: Text(_busy ? 'Signing in...' : 'Login'),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                          child: const Icon(Icons.arrow_forward, size: 16, color: AppColors.primaryDark),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(_busy ? 'Signing in...' : 'Get Started'),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextButton(
@@ -114,8 +126,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: const Text('No account yet? Register'),
                   ),
                   const SizedBox(height: 8),
-                  const Text('Accounts stay on this device. No internet needed.',
-                      textAlign: TextAlign.center, style: TextStyle(color: AppColors.muted, fontSize: 12)),
+                  const Text(
+                    'Accounts stay on this device. No internet needed.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.muted, fontSize: 12),
+                  ),
                 ],
               ),
             ),

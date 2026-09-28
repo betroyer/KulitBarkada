@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'brand_logo.dart';
 
-/// Shared wireframe-style UI matching the Kulit Barkada sketches.
 class KulitAppHeader extends StatelessWidget implements PreferredSizeWidget {
   const KulitAppHeader({super.key, this.onProfileTap});
 
@@ -15,31 +14,37 @@ class KulitAppHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.surface,
+      color: AppColors.background,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: SafeArea(
         bottom: false,
         child: Row(
           children: [
-            const KulitLogo(size: 44, showBorder: true),
+            const KulitLogo(size: 46, showBorder: false),
             const SizedBox(width: 12),
             const Expanded(
               child: Text(
-                'KULIT BARKADA',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 0.5),
+                'Kulit Barkada',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                  letterSpacing: -0.3,
+                ),
               ),
             ),
             InkWell(
               onTap: onProfileTap,
               borderRadius: BorderRadius.circular(999),
               child: Container(
-                width: 40,
-                height: 40,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.ink, width: 2),
+                  color: AppColors.surface,
+                  boxShadow: AppColors.softShadow,
                 ),
-                child: const Icon(Icons.person_outline, size: 22),
+                child: const Icon(Icons.person_outline, size: 22, color: AppColors.ink),
               ),
             ),
           ],
@@ -61,11 +66,15 @@ class WireframeAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      backgroundColor: AppColors.background,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
+        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
         onPressed: () => Navigator.maybePop(context),
       ),
-      title: Text(title.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.8)),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.ink, fontSize: 20),
+      ),
       centerTitle: false,
       actions: actions,
     );
@@ -86,18 +95,31 @@ class WireframePill extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(999),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        child: Ink(
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.ink, width: 2),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(999),
+            boxShadow: AppColors.softShadow,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, letterSpacing: 0.5)),
-              if (icon != null) ...[const SizedBox(width: 6), Icon(icon, size: 16)],
-            ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    color: AppColors.ink,
+                  ),
+                ),
+                if (icon != null) ...[
+                  const SizedBox(width: 6),
+                  Icon(icon, size: 16, color: AppColors.ink),
+                ],
+              ],
+            ),
           ),
         ),
       ),
@@ -111,25 +133,26 @@ class WireframeOutlineButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.expanded = true,
+    this.filled = true,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool expanded;
+  final bool filled;
 
   @override
   Widget build(BuildContext context) {
-    final btn = OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.ink,
-        side: const BorderSide(color: AppColors.ink, width: 2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        textStyle: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.8),
-      ),
-      child: Text(label.toUpperCase()),
-    );
+    final child = Text(label);
+    final Widget btn = filled
+        ? FilledButton(
+            onPressed: onPressed,
+            child: child,
+          )
+        : OutlinedButton(
+            onPressed: onPressed,
+            child: child,
+          );
     return expanded ? SizedBox(width: double.infinity, child: btn) : btn;
   }
 }
@@ -145,14 +168,20 @@ class WireframeTotalBox extends StatelessWidget {
     return Align(
       alignment: Alignment.centerRight,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.ink, width: 2),
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.primaryDark,
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: AppColors.softShadow,
         ),
         child: Text(
           '$label $total',
-          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 0.5),
+          style: const TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 14,
+            color: Colors.white,
+            letterSpacing: 0.3,
+          ),
         ),
       ),
     );
@@ -179,15 +208,15 @@ class WireframeGroupCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         child: Ink(
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.ink, width: 2),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: AppColors.softShadow,
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -195,15 +224,54 @@ class WireframeGroupCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        name.toUpperCase(),
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 0.5),
+                        name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 17,
+                          color: AppColors.ink,
+                        ),
                       ),
                     ),
-                    Text(date, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                    Text(
+                      date,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: AppColors.muted,
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                WireframePill(label: '$memberCount MEMBERS'),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        '$memberCount members',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                          color: AppColors.accent,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primaryDark,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.arrow_outward, size: 16, color: Colors.white),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -227,11 +295,11 @@ class WireframeLineItem extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              label.toUpperCase(),
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.4),
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.ink),
             ),
           ),
-          Text(amount, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+          Text(amount, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppColors.ink)),
         ],
       ),
     );
@@ -248,8 +316,13 @@ class WireframeSectionLabel extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 12),
       child: Text(
-        label.toUpperCase(),
-        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 0.8),
+        label,
+        style: const TextStyle(
+          fontWeight: FontWeight.w800,
+          fontSize: 18,
+          color: AppColors.ink,
+          letterSpacing: -0.2,
+        ),
       ),
     );
   }
@@ -263,21 +336,31 @@ class WireframeCreateFab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 20, bottom: 20),
+      padding: const EdgeInsets.only(right: 16, bottom: 16),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(999),
           child: Ink(
             decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.ink, width: 2),
+              color: AppColors.primaryDark,
+              borderRadius: BorderRadius.circular(999),
+              boxShadow: AppColors.softShadow,
             ),
             child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              child: Text('+ CREATE', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+              padding: EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add, color: Colors.white, size: 20),
+                  SizedBox(width: 6),
+                  Text(
+                    'Create',
+                    style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white, fontSize: 15),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -106,7 +106,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: AppColors.background,
       body: AnimatedBuilder(
         animation: Listenable.merge([_bounce, _wobble, _exit]),
         builder: (context, child) {
@@ -131,17 +131,17 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     const Text(
                       'KULIT BARKADA',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.ink,
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 1.4,
+                        letterSpacing: 1.2,
                       ),
                     ),
                     const SizedBox(height: 10),
                     Text(
                       auth.ready ? 'Almost there…' : 'Warming up the barkada…',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.55),
+                      style: const TextStyle(
+                        color: AppColors.muted,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -151,8 +151,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       height: 28,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
-                        color: AppColors.gold,
-                        backgroundColor: Colors.white.withValues(alpha: 0.12),
+                        color: AppColors.accent,
+                        backgroundColor: AppColors.accent.withValues(alpha: 0.15),
                       ),
                     ),
                   ],

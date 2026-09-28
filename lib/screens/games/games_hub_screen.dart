@@ -38,27 +38,41 @@ class _GamesHubScreenState extends State<GamesHubScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: const WireframeAppBar(title: 'Games'),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
               children: [
-                const Text(
-                  'Party games for the barkada — fully offline.',
-                  style: TextStyle(color: AppColors.muted, height: 1.4),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.heroGradient,
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: AppColors.softShadow,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Party games for the barkada',
+                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20, color: AppColors.ink),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '$_memberCount members ready · fully offline',
+                        style: const TextStyle(color: AppColors.muted),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  '$_memberCount members ready',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
                 _GameCard(
                   emoji: '🎭',
                   title: 'Truth or Dare',
                   subtitle: 'Spin a member, pick Truth or Dare, keep the vibe going.',
-                  color: AppColors.decide,
+                  color: AppColors.pink,
                   onTap: () {
                     if (_memberCount < 2) {
                       showSnack(context, 'Add at least 2 members first.', error: true);
@@ -72,7 +86,7 @@ class _GamesHubScreenState extends State<GamesHubScreen> {
                   emoji: '🕵️',
                   title: 'Who is the Spy',
                   subtitle: 'One spy doesn’t know the place. Ask questions, then vote.',
-                  color: AppColors.activities,
+                  color: AppColors.accent,
                   onTap: () {
                     if (_memberCount < 3) {
                       showSnack(context, 'Need at least 3 members for Who is the Spy.', error: true);
@@ -108,25 +122,24 @@ class _GameCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         child: Ink(
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.ink, width: 2),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: AppColors.softShadow,
           ),
           child: Padding(
             padding: const EdgeInsets.all(18),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 52,
-                  height: 52,
+                  width: 54,
+                  height: 54,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(14),
+                    color: color.withValues(alpha: 0.14),
+                    shape: BoxShape.circle,
                   ),
                   child: Text(emoji, style: const TextStyle(fontSize: 26)),
                 ),
@@ -135,13 +148,18 @@ class _GameCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
-                      const SizedBox(height: 6),
-                      Text(subtitle, style: const TextStyle(color: AppColors.muted, height: 1.35)),
+                      Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17, color: AppColors.ink)),
+                      const SizedBox(height: 4),
+                      Text(subtitle, style: const TextStyle(color: AppColors.muted, height: 1.35, fontSize: 13)),
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: const BoxDecoration(color: AppColors.primaryDark, shape: BoxShape.circle),
+                  child: const Icon(Icons.arrow_outward, size: 16, color: Colors.white),
+                ),
               ],
             ),
           ),

@@ -310,11 +310,14 @@ class _SpyGameScreenState extends State<SpyGameScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: ListTile(
+                tileColor: AppColors.surface,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(18),
                   side: BorderSide(
-                    color: _selectedVote == member.id ? AppColors.primary : AppColors.ink,
-                    width: 2,
+                    color: _selectedVote == member.id
+                        ? AppColors.accent
+                        : AppColors.ink.withValues(alpha: 0.06),
+                    width: _selectedVote == member.id ? 2 : 1,
                   ),
                 ),
                 leading: AvatarCircle(initials: initials(member.name), color: AppColors.activities),

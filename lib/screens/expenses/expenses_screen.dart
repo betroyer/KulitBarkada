@@ -82,7 +82,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                 Container(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   decoration: BoxDecoration(
-                    border: Border(left: BorderSide(color: AppColors.ink, width: 3)),
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: AppColors.softShadow,
                   ),
                   child: Column(
                     children: [
