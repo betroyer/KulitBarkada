@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
 
 import 'data/repositories.dart';
@@ -10,7 +11,7 @@ import 'theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const BarkadaPlanApp());
+  runApp(const ProviderScope(child: BarkadaPlanApp()));
 }
 
 class BarkadaPlanApp extends StatelessWidget {

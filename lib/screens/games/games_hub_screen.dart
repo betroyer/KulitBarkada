@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../data/repositories.dart';
+import '../../features/truth_or_dare/screens/tod_home_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/widgets.dart';
 import '../../widgets/wireframe_ui.dart';
 import 'spy_game_screen.dart';
-import 'truth_dare_screen.dart';
 
 class GamesHubScreen extends StatefulWidget {
   const GamesHubScreen({super.key, required this.groupId});
@@ -18,6 +18,7 @@ class GamesHubScreen extends StatefulWidget {
 
 class _GamesHubScreenState extends State<GamesHubScreen> {
   int _memberCount = 0;
+  List<String> _memberNames = [];
   bool _loading = true;
 
   @override
@@ -31,6 +32,7 @@ class _GamesHubScreenState extends State<GamesHubScreen> {
     if (!mounted) return;
     setState(() {
       _memberCount = members.length;
+      _memberNames = members.map((m) => m.name).toList();
       _loading = false;
     });
   }
@@ -71,14 +73,13 @@ class _GamesHubScreenState extends State<GamesHubScreen> {
                 _GameCard(
                   emoji: '🎭',
                   title: 'Truth or Dare',
-                  subtitle: 'Spin a member, pick Truth or Dare, keep the vibe going.',
+                  subtitle: 'Full party mode — categories, scores, custom prompts.',
                   color: AppColors.pink,
                   onTap: () {
-                    if (_memberCount < 2) {
-                      showSnack(context, 'Add at least 2 members first.', error: true);
-                      return;
-                    }
-                    pushPage(context, TruthDareScreen(groupId: widget.groupId));
+                    pushPage(
+                      context,
+                      TodHomeScreen(prefillNames: _memberNames),
+                    );
                   },
                 ),
                 const SizedBox(height: 14),
